@@ -118,7 +118,8 @@ if __name__ == '__main__':
         os.system('"./Praat" --run extract_freq_info.praat')
     else:
         os.system('"Praat.app/Contents/MacOS/Praat" --run extract_freq_info.praat')
-    file = open('output.txt','r')
+    #output.txt entrega en este orden los valores:   [mean, min, max]
+    file = open('output.txt','r') 
     values = file.readline()
     values = values.split(', ')
     for x in range(0,3):
