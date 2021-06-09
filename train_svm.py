@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.cross_validation import cross_val_score
+from sklearn.model_selection import cross_val_score
 from sklearn import metrics
 from sklearn.svm import SVC
 import matplotlib.pyplot as plt
@@ -25,7 +25,7 @@ def parameter_tuning_svm(input_df):
    #svc = SVC(kernel='linear')
 
     #segmenting data set and cross validation
-    training, testing, training_result, testing_result = train_test_split(x, y, test_size=0.4, random_state=1)
+    training, testing, training_result, testing_result=train_test_split(x, y, test_size=0.4, random_state=1)
     # scores = cross_val_score(svc, training, training_result, cv=10, scoring='accuracy')
     # print scores.mean()
 
@@ -44,7 +44,7 @@ def parameter_tuning_svm(input_df):
     # plt.show()
 
     optimal_cval = c_vals[accuracy_vals.index(max(accuracy_vals))]
-    print optimal_cval
+    print (optimal_cval)
 
     #gamma value tuning
     gamma_vals = [0.00001,0.0001,0.001,0.01,0.1]
@@ -124,11 +124,11 @@ if __name__ == '__main__':
     for x in range(0,3):
         values[x] = float(values[x])/1000
 
-    print "training and tuning svm"
+    print ("training and tuning svm")
     df =import_and_clean()
     tuned_svm = parameter_tuning_svm(df)
     predictions = tuned_svm.predict(values)
     if predictions == 0:
-        print "you are a female"
+        print ("you are a female")
     else:
-        print "you are a male"
+        print ("you are a male")
