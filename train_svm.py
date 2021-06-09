@@ -112,9 +112,9 @@ def record_audio():
 if __name__ == '__main__':
 
     record_audio()
-    if platform.system() == 'Linux':
+    if platform.system() == 'Windows':
         os.system('"Praat.exe" --run extract_freq_info.praat')
-    elif platform.system() == 'Windows':
+    elif platform.system() == 'Linux':
         os.system('"./Praat" --run extract_freq_info.praat')
     else:
         os.system('"Praat.app/Contents/MacOS/Praat" --run extract_freq_info.praat')
