@@ -2,6 +2,7 @@
 #https://www.kaggle.com/rajmehra03/a-complete-tutorial-onpredictive-modeling-acc-99
 '''IMPORTACION DE MODULOS'''
 # Ignore  the warnings
+from typing import ValuesView
 import warnings
 warnings.filterwarnings('always')
 warnings.filterwarnings('ignore')
@@ -19,11 +20,13 @@ import missingno as msno
 #%matplotlib inline  
 style.use('fivethirtyeight')
 sns.set(style='whitegrid',color_codes=True)
+import os
 
 #import the necessary modelling algos.
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
+from sklearn.svm import NuSVC
 
 #model selection
 from sklearn.model_selection import train_test_split
@@ -169,6 +172,12 @@ df.drop('maxdom',axis=1,inplace=True)
 df.drop('dfrange',axis=1,inplace=True)
 df.drop('modindx',axis=1,inplace=True)
 
+#meanfreq, sfm y sp.son redundantes con sd, por lo tanto se eliminan
+df.drop('sfm',axis=1,inplace=True)
+df.drop('sp.ent',axis=1,inplace=True)
+df.drop('meanfreq',axis=1,inplace=True)
+df.drop('median',axis=1,inplace=True)
+
 #########################################################################################################################################################
 
 '''
@@ -205,13 +214,14 @@ Ahora, para eliminar esos valores atípicos, podemos eliminar los puntos de dato
 Por ahora, eliminaré todas las observaciones o puntos de datos que sean atípicos para "cualquier" característica. Tenga en cuenta que esto reduce sustancialmente el tamaño del conjunto de datos.
 '''
 #BUSCAR OTRO METODO DE TRATAR OUTLIERSS
-def eliminar_outlier():
+def eliminar(df):
         for col in df.columns:
                 try:
                         lower,upper=calcular_limites(col)
                         df = df[(df[col] >lower) & (df[col]<upper)]     
                 except:
                         pass
+        
 
 #########################################################################################################################################################
 '''
@@ -238,30 +248,98 @@ def Normalizar():
         X=scaled_df
         Y=df['label'].to_numpy()#Convert the frame to its Numpy-array representation.
         x_train,x_test,y_train,y_test=train_test_split(X,Y,test_size=0.20,random_state=42) #Split arrays or matrices into random train and test subsets
-#test_size=proporción del conjunto de datos para incluir en la división de prueba. 
-#random_state=Controla la mezcla aplicada a los datos antes de aplicar la división. Pase un int para una salida reproducible a través de múltiples llamadas a funciones 
+        #test_size=proporción del conjunto de datos para incluir en la división de prueba. 
+        #random_state=Controla la mezcla aplicada a los datos antes de aplicar la división. Pase un int para una salida reproducible a través de múltiples llamadas a funciones 
+        return x_train,x_test,y_train,y_test
 
-
-
- 
+        
 
 def Modelado(modelo):
-        clf_svm=SVC() #C-Support Vector Classification.
+        Normalizar()
+        clf_svm=modelo #C-Support Vector Classification.
         clf_svm.fit(x_train,y_train)#fit(X, y[, sample_weight])Fit the SVM model according to the given training data.
         pred=clf_svm.predict(x_test)#Perform classification on samples in X.
         print(accuracy_score(pred,y_test))#his function computes subset accuracy
+        return clf_svm
 
 
-Modelado(SVC(kernel='linear',C=10))
-Modelado(SVC(kernel='rbf',C=10))
-Modelado(SVC(kernel='poly',C=10))
-Modelado(SVC(kernel='sigmoid',C=10))
 
-def MejorSVM():
-        params_dict={'C':[0.001,0.01,0.1,1,10,100],'gamma':[0.001,0.01,0.1,1,10,100],'kernel':['linear','rbf','poly','sigmoid']}
-        clf=GridSearchCV(estimator=SVC(),param_grid=params_dict,scoring='accuracy',cv=10)
-        clf.fit(x_train,y_train)
 
-        acierto=clf.best_score_
-        parametros=clf.best_params_
-        return aciertos,parametros
+def Graficar_Modelos():
+        models=[SVC(kernel='linear'),SVC(kernel='rbf'),SVC(kernel='poly'),SVC(kernel='sigmoid')]
+        models_name=['SVC LINEAL','SVC RBF','SVC POLY','SVC SIGM']
+        acc=[]
+        d={}
+
+        for model in range(len(models)):
+                clf=models[model]
+                clf.fit(x_train,y_train)
+                pred=clf.predict(x_test)
+                acc.append(accuracy_score(pred,y_test))
+        
+        
+        d={'Modelling Algo':models_name,'Accuracy':acc}
+
+        acc_frame=pd.DataFrame(d)
+        acc_frame
+
+        fig=sns.barplot(y='Modelling Algo',x='Accuracy',data=acc_frame,palette='YlGnBu')
+        fig=plt.gcf()
+        fig.set_size_inches(15,7)
+        fig.savefig('CompMODELOS') #guardar graficos  
+
+
+
+
+def record_audio():
+
+    CHUNK = 1024
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 2
+    RATE = 44100
+    RECORD_SECONDS = 5
+    WAVE_OUTPUT_FILENAME = "test_audio.wav"
+
+    p = pyaudio.PyAudio()
+
+    stream = p.open(format=FORMAT,
+                    channels=CHANNELS,
+                    rate=RATE,
+                    input=True,
+                    frames_per_buffer=CHUNK)
+
+    print("* recording")
+
+    frames = []
+
+    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK)
+        frames.append(data)
+
+    print("* done recording")
+
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
+    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+    wf.setnchannels(CHANNELS)
+    wf.setsampwidth(p.get_sample_size(FORMAT))
+    wf.setframerate(RATE)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+
+
+def Obtener_Valores_Voz():
+        record_audio()
+        os.system('"Praat.exe" --run extract_freq_info.praat')
+        file = open('output.txt','r') 
+        values = file.readline()
+        values = values.split(', ')
+        values=values[0:4]
+        for x in range(0,4):
+                values[x] = float(values[x])/1000
+        values=np.array(values)
+        valores_voz=[values]
+        return valores_voz
+
