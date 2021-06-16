@@ -16,7 +16,7 @@ import missingno as msno
 
 #configure
 # sets matplotlib to inline and displays graphs below the corressponding cell.
-%matplotlib inline  
+#%matplotlib inline  
 style.use('fivethirtyeight')
 sns.set(style='whitegrid',color_codes=True)
 
@@ -64,8 +64,8 @@ def calcular_limites(feature):
 
 def grafico(feature):
     fig,axes=plt.subplots(1,2) #crea una figura (nfilas, ncolumnas) osea dos graficos en una fila
-    sns.boxplot(data=df,x=feature,ax=axes[0],color='#6e2ee9') #AX=se coloca en el grafico 1; grafico de 'jeringas'
-    sns.distplot(a=df[feature],ax=axes[1],color='#6e2ee9')#A=serie, datos observados; histograma y linea de distribucion
+    sns.boxplot(data=df,x=feature,ax=axes[0],color='#2F75B5') #AX=se coloca en el grafico 1; grafico de 'jeringas'
+    sns.distplot(a=df[feature],ax=axes[1],color='#2F75B5')#A=serie, datos observados; histograma y linea de distribucion
     fig.set_size_inches(15,5) #tamaño
     
     lower,upper = calcular_limites(feature)
@@ -109,7 +109,7 @@ def MatrizCorrelacion():
     #dibujar
     fig2=plt.gcf()#Get the current figure, If no current figure is available then one is created with the help of the figure() function.
     fig2.set_size_inches(30,12)
-    sns.heatmap(data=cor_mat,mask=mask,square=True,annot=True,cbar=True)#crea mapa de calor
+    sns.heatmap(data=cor_mat,mask=mask,square=True,annot=True,cbar=True,cmap="YlGnBu")#crea mapa de calor
     fig2.savefig('Matriz de Correlacion') #guardar graficos 
 
 '''
@@ -156,5 +156,41 @@ En el caso de características altamente correlacionadas, podemos usar técnicas
 (el profe hablo de esto en clases :o)
 '''
 
-df.drop('centroid',axis=1,inplace=True)# elimina centroid que no es necesario, segun analisis anterior
+df.drop('centroid',axis=1,inplace=True)
+df.drop('median',axis=1,inplace=True)
+df.drop('Q75',axis=1,inplace=True)
+df.drop('skew',axis=1,inplace=True)
+df.drop('kurt',axis=1,inplace=True)
+df.drop('mode',axis=1,inplace=True)
+df.drop('minfun',axis=1,inplace=True)
+df.drop('maxfun',axis=1,inplace=True)
+df.drop('meandom',axis=1,inplace=True)
+df.drop('mindom',axis=1,inplace=True)
+df.drop('maxdom',axis=1,inplace=True)
+df.drop('dfrange',axis=1,inplace=True)
+df.drop('modindx',axis=1,inplace=True)
+
+#########################################################################################################################################################
+
+'''
+Caracteristicas segun Genero
+'''
+
+def caract_gen(feature):
+    sns.factorplot(data=df,y=feature,x='label',kind='strip',palette='YlGnBu')
+    fig=plt.gcf()
+    fig.set_size_inches(7,7)
+    fig.savefig(feature.upper()+'caract-gen') #guardar graficos 
+
+'''
+Nuevamente, una gran diferencia en mujeres y hombres significa frecuencia fundamental. 
+Esto es evidente en el mapa de calor que muestra claramente la alta correlación entre meanfun y la 'etiqueta'.
+Ahora pasamos al análisis de diferentes características por parejas. Dado que todas las características son continuas,
+la forma más razonable de hacerlo es trazar los gráficos de dispersión para cada par de características.
+También he distinguido machos y hembras en la misma parcela, lo que hace que sea un poco más fácil comparar la variación de características dentro de las dos clases. 
+'''
+def comp_caract():
+        g = sns.PairGrid(df[['meanfreq','sd','Q25','IQR','sp.ent','sfm','meanfun','label']], hue = "label",palette='YlGnBu')
+        g = g.map(plt.scatter).add_legend()
+        g.savefig('ComparacionCaracts') #guardar graficos 
 
