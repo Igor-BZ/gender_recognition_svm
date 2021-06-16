@@ -157,7 +157,6 @@ En el caso de características altamente correlacionadas, podemos usar técnicas
 '''
 
 df.drop('centroid',axis=1,inplace=True)
-df.drop('median',axis=1,inplace=True)
 df.drop('Q75',axis=1,inplace=True)
 df.drop('skew',axis=1,inplace=True)
 df.drop('kurt',axis=1,inplace=True)
@@ -174,6 +173,7 @@ df.drop('modindx',axis=1,inplace=True)
 
 '''
 Caracteristicas segun Genero
+ejecutar para cada caracteristica
 '''
 
 def caract_gen(feature):
@@ -190,7 +190,78 @@ la forma más razonable de hacerlo es trazar los gráficos de dispersión para c
 También he distinguido machos y hembras en la misma parcela, lo que hace que sea un poco más fácil comparar la variación de características dentro de las dos clases. 
 '''
 def comp_caract():
-        g = sns.PairGrid(df[['meanfreq','sd','Q25','IQR','sp.ent','sfm','meanfun','label']], hue = "label",palette='YlGnBu')
+        g = sns.PairGrid(df[['meanfreq','median','sd','Q25','IQR','sp.ent','sfm','meanfun','label']], hue = "label",palette='YlGnBu')
         g = g.map(plt.scatter).add_legend()
         g.savefig('ComparacionCaracts') #guardar graficos 
 
+#########################################################################################################################################################
+'''
+Tratamiento de valores atípicos
+
+En esta sección me he ocupado de los valores atípicos. Tenga en cuenta que descubrimos los valores atípicos potenciales en la sección de "análisis univariante".
+
+Ahora, para eliminar esos valores atípicos, podemos eliminar los puntos de datos correspondientes o imputarlos con alguna otra cantidad estadística como la mediana (robusta a los valores atípicos), etc.
+
+Por ahora, eliminaré todas las observaciones o puntos de datos que sean atípicos para "cualquier" característica. Tenga en cuenta que esto reduce sustancialmente el tamaño del conjunto de datos.
+'''
+#BUSCAR OTRO METODO DE TRATAR OUTLIERSS
+def eliminar_outlier():
+        for col in df.columns:
+                try:
+                        lower,upper=calcular_limites(col)
+                        df = df[(df[col] >lower) & (df[col]<upper)]     
+                except:
+                        pass
+
+#########################################################################################################################################################
+'''
+Estandarice las características eliminando la media y escalando a la varianza de la unidad
+StandardScaler():
+La puntuación estándar de una muestra xse calcula como:
+
+    z = (x - u) / s
+
+    SE APLICA DESVIACION ESTANDAR PARA NORMALIZAR LOS DATOS UWU
+fIT_TRANSFORM=
+Fit to data, then transform it.
+
+Fits transformer to X and y with optional parameters fit_params and returns a transformed version of X.
+
+Xarray-like of shape (n_samples, n_features)
+yarray-like of shape (n_samples,) or (n_samples, n_outputs),
+X_newndarray array of shape (n_samples, n_features_new)
+'''
+def Normalizar():
+        temp_df=df
+        scaler=StandardScaler()
+        scaled_df=scaler.fit_transform(temp_df.drop('label',axis=1))
+        X=scaled_df
+        Y=df['label'].to_numpy()#Convert the frame to its Numpy-array representation.
+        x_train,x_test,y_train,y_test=train_test_split(X,Y,test_size=0.20,random_state=42) #Split arrays or matrices into random train and test subsets
+#test_size=proporción del conjunto de datos para incluir en la división de prueba. 
+#random_state=Controla la mezcla aplicada a los datos antes de aplicar la división. Pase un int para una salida reproducible a través de múltiples llamadas a funciones 
+
+
+
+ 
+
+def Modelado(modelo):
+        clf_svm=SVC() #C-Support Vector Classification.
+        clf_svm.fit(x_train,y_train)#fit(X, y[, sample_weight])Fit the SVM model according to the given training data.
+        pred=clf_svm.predict(x_test)#Perform classification on samples in X.
+        print(accuracy_score(pred,y_test))#his function computes subset accuracy
+
+
+Modelado(SVC(kernel='linear',C=10))
+Modelado(SVC(kernel='rbf',C=10))
+Modelado(SVC(kernel='poly',C=10))
+Modelado(SVC(kernel='sigmoid',C=10))
+
+def MejorSVM():
+        params_dict={'C':[0.001,0.01,0.1,1,10,100],'gamma':[0.001,0.01,0.1,1,10,100],'kernel':['linear','rbf','poly','sigmoid']}
+        clf=GridSearchCV(estimator=SVC(),param_grid=params_dict,scoring='accuracy',cv=10)
+        clf.fit(x_train,y_train)
+
+        acierto=clf.best_score_
+        parametros=clf.best_params_
+        return aciertos,parametros
