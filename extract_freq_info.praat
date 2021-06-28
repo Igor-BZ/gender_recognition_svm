@@ -11,7 +11,10 @@ duration = Get end time
 min = Get minimum: 0.0, duration, "Hertz", "Parabolic"
 max = Get maximum: 0.0, duration, "Hertz", "Parabolic"
 mean = Get mean: 0.0, duration, "Hertz"
+sd = Get standard deviation: 0.0, duration, "Hertz"
+q25 = Get quantile... 0 0 0.25 Hertz
+q75 = Get quantile... 0 0 0.75 Hertz
+iqr = q75-q25
 
-writeFileLine: "output.txt", mean,", ",min, ", ", max
-
+writeFileLine: "output.txt", sd,", ", q25,", ", iqr,", ",mean
 Quit
