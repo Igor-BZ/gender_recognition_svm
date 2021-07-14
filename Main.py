@@ -145,4 +145,5 @@ clf=Modelado(SVC(kernel='rbf'))
 voz=Obtener_Valores_Voz()
 clf.predict(voz)
 
+#probando
 
